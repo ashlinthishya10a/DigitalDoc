@@ -1,0 +1,22 @@
+{
+  "name": "digitalflow-document-approval-system",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "backend",
+    "student-portal",
+    "staff-portal"
+  ],
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "scripts": {
+    "install:all": "npm --prefix backend install && npm --prefix student-portal install && npm --prefix staff-portal install",
+    "seed:demo": "npm --prefix backend run seed:demo",
+    "dev": "concurrently \"npm --prefix backend run dev\" \"npm --prefix student-portal run dev\" \"npm --prefix staff-portal start\"",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:student": "npm --prefix student-portal run dev",
+    "dev:staff": "npm --prefix staff-portal start",
+    "build": "npm --prefix backend run build && npm --prefix student-portal run build && npm --prefix staff-portal run build"
+  }
+}

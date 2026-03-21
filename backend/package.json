@@ -1,0 +1,26 @@
+{
+  "name": "digitalflow-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "build": "node -e \"console.log('Backend build step is runtime-based for Express')\"",
+    "seed:admin": "node src/seed/createAdmin.js",
+    "seed:demo": "node src/seed/seedDemoData.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.10.0",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "pdf-lib": "^1.17.1",
+    "sharp": "^0.33.5",
+    "uuid": "^11.0.5"
+  }
+}

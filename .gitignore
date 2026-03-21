@@ -1,0 +1,10 @@
+node_modules
+dist
+build
+.angular
+.vite
+.env
+coverage
+backend/uploads/*
+!backend/uploads/.gitkeep
+*.log
