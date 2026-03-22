@@ -24,6 +24,21 @@ import { ApiService } from "../../core/services/api.service";
         <button class="primary-btn">Save Enrollment</button>
       </form>
 
+      <form class="glass-card" [formGroup]="adminForm" (ngSubmit)="submitAdmin()">
+        <h2>Create Admin</h2>
+        <div class="form-grid">
+          <label>Admin Name<input formControlName="name" /></label>
+          <label>Email<input formControlName="email" /></label>
+          <label>Employee ID<input formControlName="employeeId" /></label>
+          <label>Department<input formControlName="department" /></label>
+          <label>Password<input type="password" formControlName="password" /></label>
+        </div>
+        <p class="success-text" *ngIf="adminSuccess()">{{ adminSuccess() }}</p>
+        <button class="primary-btn">Create Admin Account</button>
+      </form>
+    </div>
+
+    <div class="grid-two">
       <form class="glass-card" [formGroup]="assignForm" (ngSubmit)="submitAssign()">
         <h2>Assign Advisor and HOD</h2>
         <div class="form-grid">
@@ -52,6 +67,17 @@ import { ApiService } from "../../core/services/api.service";
         </div>
         <button class="primary-btn">Assign Workflow</button>
       </form>
+
+      <section class="glass-card">
+        <h2>Admin Directory</h2>
+        <div class="table-list">
+          <article class="table-row" *ngFor="let item of admins()">
+            <div><strong>{{ item.name }}</strong><p>ADMIN</p></div>
+            <div><p>{{ item.employeeId }}</p><p>{{ item.email }}</p></div>
+            <div><p>{{ item.department || 'Administration' }}</p><p>Access Active</p></div>
+          </article>
+        </div>
+      </section>
     </div>
 
     <section class="glass-card">
@@ -76,6 +102,8 @@ export class EnrollmentsComponent {
   enrollments = signal<any[]>([]);
   advisors = signal<any[]>([]);
   hods = signal<any[]>([]);
+  admins = signal<any[]>([]);
+  adminSuccess = signal("");
 
   enrollForm = this.fb.group({
     role: ["student", Validators.required],
@@ -92,6 +120,14 @@ export class EnrollmentsComponent {
     enrollmentId: ["", Validators.required],
     advisorEnrollmentId: ["", Validators.required],
     hodEnrollmentId: ["", Validators.required]
+  });
+
+  adminForm = this.fb.group({
+    name: ["", Validators.required],
+    email: ["", [Validators.required, Validators.email]],
+    employeeId: ["", Validators.required],
+    department: ["Administration", Validators.required],
+    password: ["", Validators.required]
   });
 
   constructor() {
@@ -128,6 +164,14 @@ export class EnrollmentsComponent {
     });
   }
 
+  submitAdmin() {
+    this.api.post<any>("/admin/admins", this.adminForm.getRawValue()).subscribe((response) => {
+      this.syncLists(response);
+      this.adminSuccess.set(response.message || "Admin account created.");
+      this.adminForm.reset({ name: "", email: "", employeeId: "", department: "Administration", password: "" });
+    });
+  }
+
   submitAssign() {
     this.api.post("/admin/assign", this.assignForm.getRawValue()).subscribe(() => this.load());
   }
@@ -140,6 +184,7 @@ export class EnrollmentsComponent {
     this.enrollments.set(response.enrollments || []);
     this.advisors.set(response.advisors || []);
     this.hods.set(response.hods || []);
+    this.admins.set(response.admins || this.admins());
 
     if (!this.assignForm.get("enrollmentId")?.value && response.enrollments?.length) {
       const firstStudent = response.enrollments.find((item: any) => item.role === "student");

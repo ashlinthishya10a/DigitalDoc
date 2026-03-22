@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   assignStudentWorkflow,
   bootstrapAdmin,
+  createAdminAccount,
   enrollUser,
   getAdminDashboard,
   listEnrollments,
@@ -17,6 +18,7 @@ router.use(authenticate, authorize("admin"));
 router.get("/dashboard", asyncHandler(getAdminDashboard));
 router.get("/enrollments", asyncHandler(listEnrollments));
 router.post("/enroll", asyncHandler(enrollUser));
+router.post("/admins", asyncHandler(createAdminAccount));
 router.post("/assign", asyncHandler(assignStudentWorkflow));
 router.delete("/enrollments/:enrollmentId", asyncHandler(removeEnrollmentOrUser));
 

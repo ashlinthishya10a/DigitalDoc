@@ -3,26 +3,36 @@ import { connectDatabase } from "../config/db.js";
 import { User } from "../models/User.js";
 import { hashPassword } from "../utils/auth.js";
 
+const adminBootstrap = {
+  name: process.env.ADMIN_NAME || "System Admin",
+  employeeId: (process.env.ADMIN_EMPLOYEE_ID || "ADMIN001").toUpperCase(),
+  email: (process.env.ADMIN_EMAIL || "admin@digitalflow.edu").toLowerCase(),
+  password: process.env.ADMIN_PASSWORD || "Admin@123"
+};
+
 const run = async () => {
   await connectDatabase();
 
-  const exists = await User.findOne({ role: "admin" });
-  if (exists) {
-    console.log("Admin already exists");
-    process.exit(0);
-  }
+  await User.findOneAndUpdate(
+    {
+      role: "admin",
+      $or: [{ email: adminBootstrap.email }, { employeeId: adminBootstrap.employeeId }]
+    },
+    {
+      $set: {
+        role: "admin",
+        name: adminBootstrap.name,
+        employeeId: adminBootstrap.employeeId,
+        email: adminBootstrap.email,
+        password: await hashPassword(adminBootstrap.password),
+        department: "Administration",
+        enrolledByAdmin: true
+      }
+    },
+    { upsert: true, new: true }
+  );
 
-  await User.create({
-    role: "admin",
-    name: "System Admin",
-    employeeId: "ADMIN001",
-    email: "admin@digitalflow.edu",
-    password: await hashPassword("Admin@123"),
-    department: "Administration",
-    enrolledByAdmin: true
-  });
-
-  console.log("Admin created: admin@digitalflow.edu / Admin@123");
+  console.log(`Admin ready: ${adminBootstrap.email} / ${adminBootstrap.password}`);
   process.exit(0);
 };
 

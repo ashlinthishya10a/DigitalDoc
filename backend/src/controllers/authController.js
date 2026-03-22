@@ -2,6 +2,13 @@ import { Enrollment } from "../models/Enrollment.js";
 import { User } from "../models/User.js";
 import { comparePassword, hashPassword, signToken } from "../utils/auth.js";
 
+const adminBootstrap = {
+  name: process.env.ADMIN_NAME || "System Admin",
+  employeeId: (process.env.ADMIN_EMPLOYEE_ID || "ADMIN001").toUpperCase(),
+  email: (process.env.ADMIN_EMAIL || "admin@digitalflow.edu").toLowerCase(),
+  password: process.env.ADMIN_PASSWORD || "Admin@123"
+};
+
 const normalizeRoleIdentifier = ({ role, identifier }) => {
   if (role === "student") {
     return { rollNo: identifier.toUpperCase() };
@@ -105,21 +112,22 @@ export const login = async (req, res) => {
   let user = await User.findOne({ role, ...lookup });
 
   if (!user && role === "admin") {
-    const isDefaultAdminIdentity = normalizedIdentifier === "admin@digitalflow.edu" || normalizedIdentifier === "ADMIN001";
+    const isBootstrapAdminIdentity =
+      normalizedIdentifier === adminBootstrap.email || normalizedIdentifier === adminBootstrap.employeeId;
 
-    if (isDefaultAdminIdentity && password === "Admin@123") {
+    if (isBootstrapAdminIdentity && password === adminBootstrap.password) {
       user = await User.findOneAndUpdate(
         {
           role: "admin",
-          $or: [{ email: "admin@digitalflow.edu" }, { employeeId: "ADMIN001" }]
+          $or: [{ email: adminBootstrap.email }, { employeeId: adminBootstrap.employeeId }]
         },
         {
           $set: {
             role: "admin",
-            name: "System Admin",
-            employeeId: "ADMIN001",
-            email: "admin@digitalflow.edu",
-            password: await hashPassword("Admin@123"),
+            name: adminBootstrap.name,
+            employeeId: adminBootstrap.employeeId,
+            email: adminBootstrap.email,
+            password: await hashPassword(adminBootstrap.password),
             department: "Administration",
             enrolledByAdmin: true
           }
@@ -129,7 +137,11 @@ export const login = async (req, res) => {
     }
   }
 
-  if (role === "admin" && (normalizedIdentifier === "admin@digitalflow.edu" || normalizedIdentifier === "ADMIN001") && password === "Admin@123") {
+  if (
+    role === "admin" &&
+    (normalizedIdentifier === adminBootstrap.email || normalizedIdentifier === adminBootstrap.employeeId) &&
+    password === adminBootstrap.password
+  ) {
     return res.json({ token: signToken(user), user });
   }
 

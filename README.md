@@ -22,6 +22,7 @@ Important:
 - the database name is `digitalflow`
 - set a strong `JWT_SECRET`
 - for MongoDB Atlas, use a `mongodb+srv://.../digitalflow?...` URI
+- for a fresh real admin account, set `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_EMPLOYEE_ID`, and `ADMIN_PASSWORD`
 
 ### 2. Student Portal
 
@@ -100,6 +101,27 @@ Demo credentials:
 - Student: `23CSE001` / `Student@123`
 - Student: `23CSE002` / `Student@123`
 - Student: `23CSE003` / `Student@123`
+
+## Create Your Own Admin
+
+For a fresh deployment where you want to use your own admin identity instead of the demo admin:
+
+1. Set these values in [backend/.env.example](/c:/Users/ADMIN/DigialApproval/backend/.env.example) or your real backend env:
+
+```env
+ADMIN_NAME=Your Name
+ADMIN_EMAIL=your-email@example.com
+ADMIN_EMPLOYEE_ID=ADMIN001
+ADMIN_PASSWORD=YourStrongPassword123
+```
+
+2. Run:
+
+```powershell
+npm.cmd --prefix backend run seed:admin
+```
+
+3. Login in the staff portal using your `ADMIN_EMAIL` or `ADMIN_EMPLOYEE_ID` and `ADMIN_PASSWORD`
 
 ## Run Locally
 

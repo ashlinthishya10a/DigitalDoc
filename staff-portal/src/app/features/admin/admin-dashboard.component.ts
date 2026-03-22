@@ -28,6 +28,7 @@ export class AdminDashboardComponent {
       { label: "Students Enrolled", value: data.students },
       { label: "Faculty Enrolled", value: data.faculty },
       { label: "HOD Enrolled", value: data.hods },
+      { label: "Admins Active", value: data.admins },
       { label: "Requests Processed", value: data.requests },
       { label: "Completed", value: data.completed }
     ];

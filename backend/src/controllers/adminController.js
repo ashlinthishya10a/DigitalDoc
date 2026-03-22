@@ -5,13 +5,15 @@ import { User } from "../models/User.js";
 import { hashPassword } from "../utils/auth.js";
 
 const buildEnrollmentPayload = async () => {
-  const [enrollments, advisors, hods] = await Promise.all([
+  const [enrollments, advisors, hods, admins] = await Promise.all([
     Enrollment.find().sort({ createdAt: -1 }),
     Enrollment.find({ role: "faculty", isActive: true }).sort({ createdAt: -1 }).select("name employeeId department email convertedToUser"),
     Enrollment.find({ role: "hod", isActive: true }).sort({ createdAt: -1 }).select("name employeeId department email convertedToUser")
+    ,
+    User.find({ role: "admin" }).sort({ createdAt: -1 }).select("name employeeId email department createdAt")
   ]);
 
-  return { enrollments, advisors, hods };
+  return { enrollments, advisors, hods, admins };
 };
 
 const cleanPayload = (payload) =>
@@ -70,21 +72,58 @@ export const assignStudentWorkflow = async (req, res) => {
 };
 
 export const getAdminDashboard = async (_req, res) => {
-  const [students, faculty, hods, requests, completed] = await Promise.all([
+  const [students, faculty, hods, admins, requests, completed] = await Promise.all([
     Enrollment.countDocuments({ role: "student" }),
     Enrollment.countDocuments({ role: "faculty" }),
     Enrollment.countDocuments({ role: "hod" }),
+    User.countDocuments({ role: "admin" }),
     Request.countDocuments(),
     Request.countDocuments({ status: "completed" })
   ]);
 
   res.json({
-    summary: { students, faculty, hods, requests, completed }
+    summary: { students, faculty, hods, admins, requests, completed }
   });
 };
 
 export const listEnrollments = async (_req, res) => {
   res.json(await buildEnrollmentPayload());
+};
+
+export const createAdminAccount = async (req, res) => {
+  const name = req.body.name?.trim();
+  const email = req.body.email?.trim()?.toLowerCase();
+  const employeeId = req.body.employeeId?.trim()?.toUpperCase();
+  const password = req.body.password;
+
+  if (!name || !email || !employeeId || !password) {
+    return res.status(400).json({ message: "Name, email, employee ID, and password are required." });
+  }
+
+  const conflict = await User.findOne({
+    $or: [{ email }, { employeeId }]
+  });
+
+  if (conflict) {
+    return res.status(409).json({ message: "An admin or staff account with that email or employee ID already exists." });
+  }
+
+  const admin = await User.create({
+    role: "admin",
+    name,
+    email,
+    employeeId,
+    password: await hashPassword(password),
+    department: req.body.department?.trim() || "Administration",
+    enrolledByAdmin: true
+  });
+
+  const lists = await buildEnrollmentPayload();
+  res.status(201).json({
+    message: "New admin account created.",
+    admin,
+    ...lists
+  });
 };
 
 export const bootstrapAdmin = async (req, res) => {
